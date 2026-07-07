@@ -12,22 +12,21 @@ USER_NAME_INPUT
 else
 #validate if exist in database
 USER_ID=$($PSQL "SELECT user_id FROM users WHERE user_name = '$USER_NAME' LIMIT 1")
-if [[ -z $USER_ID ]]
+if [[ ! -z $USER_ID ]]
 then
-echo "Welcome, $USER_NAME! It looks like this is your first time here." 
-NUMBER_TO_GUESS=$(((RANDOM % 1000) + 1 ))
-GUESS_NUMBER
-else
 GAMES_PLAYED=$($PSQL "SELECT games_played FROM users WHERE user_id = $USER_ID LIMIT 1")
 BEST_GAME=$($PSQL "SELECT best_game FROM game WHERE user_id = $USER_ID LIMIT 1")
 echo "Welcome back, $USER_NAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
 NUMBER_TO_GUESS=$(((RANDOM % 1000) + 1 ))
 GUESS_NUMBER
+else
+echo "Welcome, $USER_NAME! It looks like this is your first time here." 
+NUMBER_TO_GUESS=$(((RANDOM % 1000) + 1 ))
+GUESS_NUMBER
 fi
 fi
 }
-GUESS_NUMBER(){   
-echo "$NUMBER_TO_GUESS"
+GUESS_NUMBER(){
 echo -e "\nGuess the secret number between 1 and 1000:"
 read GUESS_NUMBER_INPUT  
 if [[ ! -z $GUESS_NUMBER_INPUT ]]
