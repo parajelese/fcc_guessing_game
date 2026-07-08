@@ -16,43 +16,43 @@ if [[ ! -z $USER_ID ]]
 then
 GAMES_PLAYED=$($PSQL "SELECT games_played FROM users WHERE user_id = $USER_ID LIMIT 1")
 BEST_GAME=$($PSQL "SELECT best_game FROM game WHERE user_id = $USER_ID LIMIT 1")
-echo "Welcome back, $USER_NAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
-NUMBER_TO_GUESS=$(((RANDOM % 1000) + 1 ))
-GUESS_NUMBER
+echo  "Welcome back, $USER_NAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
 else
-echo "Welcome, $USER_NAME! It looks like this is your first time here." 
+echo  "Welcome, $USER_NAME! It looks like this is your first time here." 
+fi
+fi
 NUMBER_TO_GUESS=$(((RANDOM % 1000) + 1 ))
 GUESS_NUMBER
-fi
-fi
 }
+
 GUESS_NUMBER(){
+  echo "$NUMBER_TO_GUESS"
 echo -e "\nGuess the secret number between 1 and 1000:"
 read GUESS_NUMBER_INPUT  
-if [[ ! -z $GUESS_NUMBER_INPUT ]]
-then 
+until [[ $GUESS_NUMBER_INPUT == $NUMBER_TO_GUESS ]]
+do
+if [[ $GUESS_NUMBER_INPUT =~ ^[0-9]+$ ]]
+then
+if [[ $GUESS_NUMBER_INPUT -lt $NUMBER_TO_GUESS ]]
+then
+echo "It's lower than that, guess again:"
+read GUESS_NUMBER_INPUT  
  ((ATTEMPTS++))
-if [[ ! $GUESS_NUMBER_INPUT =~ ^[0-9]+$ ]]
-then   
- echo "That is not an integer, guess again:"
 else
- if [[ $GUESS_NUMBER_INPUT -lt $NUMBER_TO_GUESS ]]
- then
- echo "It's lower than that, guess again:"
- GUESS_NUMBER
- elif [[ $GUESS_NUMBER_INPUT -gt $NUMBER_TO_GUESS ]]
- then
  echo "It's higher than that, guess again:"
- GUESS_NUMBER
- elif [[ $GUESS_NUMBER_INPUT -eq $NUMBER_TO_GUESS ]]
- then
- echo "You guessed it in $ATTEMPTS tries. The secret number was $NUMBER_TO_GUESS. Nice job!"
- ADD_UPDATE_USER     
- fi   
- fi
-else 
-GUESS_NUMBER
+ read GUESS_NUMBER_INPUT  
+ ((ATTEMPTS++))
 fi
+else
+ echo "That is not an integer, guess again:" 
+  read GUESS_NUMBER_INPUT  
+ ((ATTEMPTS++))
+fi
+done
+ ((ATTEMPTS++))
+  ADD_UPDATE_USER 
+ echo "You guessed it in $ATTEMPTS tries. The secret number was $NUMBER_TO_GUESS. Nice job!"   
+
 }
 ADD_UPDATE_USER(){
   DB_USER=$($PSQL "SELECT user_name,games_played FROM users WHERE user_name = '$USER_NAME' LIMIT 1")
